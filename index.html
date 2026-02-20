@@ -1,51 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Install Cost Calculator</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding: 50px 20px; background: #f4f4f9; }
-        .install-btn { 
-            background: #007AFF; color: white; padding: 16px 32px; 
-            border-radius: 12px; text-decoration: none; font-weight: bold; 
-            display: inline-block; font-size: 18px; border: none; cursor: pointer;
-        }
-    </style>
+    <title>Cost Calculator Installer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body>
+<body style="font-family: -apple-system, sans-serif; text-align: center; padding: 50px;">
 
-    <h1>Cost Calculator</h1>
-    <p>Tap below to install the Web App to your home screen.</p>
+    <h1>Install Cost Calculator</h1>
+    <p>Click the button to download the profile.</p>
 
-    <button onclick="downloadConfig()" class="install-btn">Install Now</button>
+    <button onclick="forceDownload()" style="padding: 15px 30px; background-color: #007AFF; color: white; border: none; border-radius: 10px; font-weight: bold;">
+        Install Now
+    </button>
 
     <script>
-    async function downloadConfig() {
-        const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/main/Webapp/ios.mobileconfig";
+    function forceDownload() {
+        const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
         
-        try {
-            const response = await fetch(rawUrl);
-            const text = await response.text();
-            
-            // Create a Blob with the CORRECT "aspen-config" type that iOS needs
-            const blob = new Blob([text], { type: 'application/x-apple-aspen-config' });
-            const url = window.URL.createObjectURL(blob);
-            
-            // Create a hidden link and click it
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'ios.mobileconfig';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            alert("Step 1: Profile Downloaded!\n\nStep 2: Go to your iPhone 'Settings' app and tap 'Profile Downloaded' at the top to finish.");
-        } catch (err) {
-            alert("Error: Could not fetch the config file. Make sure you are using Safari.");
-        }
+        fetch(rawUrl)
+            .then(response => response.text())
+            .then(xmlData => {
+                // This is the important part:
+                // It creates a 'Blob' and tells the iPhone this is a 'mobileconfig'
+                const blob = new Blob([xmlData], { type: 'application/x-apple-aspen-config' });
+                const url = window.URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'ios.mobileconfig';
+                document.body.appendChild(link);
+                link.click(); // This triggers the system popup
+                document.body.removeChild(link);
+            })
+            .catch(err => alert("Make sure you are using Safari on iPhone."));
     }
     </script>
-
 </body>
 </html>
