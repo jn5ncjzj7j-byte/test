@@ -1,52 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Installing...</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installing Cost Calculator...</title>
     <style>
-        body { font-family: -apple-system, sans-serif; text-align: center; padding: 100px 20px; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #007AFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f2f2f7;
+            color: #000;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            max-width: 300px;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #007AFF;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 { font-size: 22px; margin-bottom: 10px; }
+        p { color: #8e8e93; font-size: 15px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-    <div id="status">
-        <h2>Connecting to Apple...</h2>
-        <div class="spinner"></div>
-        <p>Please wait while we prepare the installer.</p>
+    <div class="container" id="main-content">
+        <div class="spinner" id="loader"></div>
+        <h2 id="title">Connecting...</h2>
+        <p id="desc">Preparing the secure installation profile for your iOS device.</p>
     </div>
 
     <script>
-    window.onload = function() {
-        const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
-        
-        fetch(rawUrl)
-            .then(response => response.text())
-            .then(xmlData => {
-                // 1. Create the Profile Blob
-                const blob = new Blob([xmlData], { type: 'application/x-apple-aspen-config' });
-                const url = window.URL.createObjectURL(blob);
-                
-                // 2. Trigger Download
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'ios.mobileconfig';
-                document.body.appendChild(link);
-                link.click();
-                
-                // 3. Update UI
-                document.getElementById('status').innerHTML = "<h2>Profile Downloaded!</h2><p>You can now close Safari and go to <b>Settings</b> to finish.</p>";
+        window.onload = function() {
+            // Path to your raw GitHub file
+            const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
+            
+            // 1. Fetch the raw XML from GitHub
+            fetch(rawUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Network error");
+                    return response.text();
+                })
+                .then(xmlData => {
+                    // 2. Create a Blob with the official Apple Configuration MIME type
+                    // This is the "magic" that makes it run as a script/profile instead of text
+                    const blob = new Blob([xmlData], { type: 'application/x-apple-aspen-config' });
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    // 3. Create a hidden link and click it to trigger the "Allow" popup
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'cost_calculator.mobileconfig';
+                    document.body.appendChild(link);
+                    
+                    // Small delay to ensure UI has loaded
+                    setTimeout(() => {
+                        link.click();
+                        document.body.removeChild(link);
+                        
+                        // 4. Update UI to tell the user we are leaving
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('title').innerText = "Profile Downloaded";
+                        document.getElementById('desc').innerHTML = "Redirecting to <b>Settings</b> to finish installation...";
 
-                // 4. Optional: Redirect to a "Success" page after 3 seconds
-                setTimeout(() => {
-                    window.location.href = "https://google.com"; // Change this to your preferred exit page
-                }, 3000);
-            })
-            .catch(err => {
-                document.getElementById('status').innerHTML = "<h2>Error</h2><p>Please open this link in Safari.</p>";
-            });
-    };
+                        // 5. Deep Link to Settings App
+                        // This "exits" the web view by jumping to the system settings
+                        setTimeout(() => {
+                            window.location.href = "App-prefs:root=General&path=ManagedConfigurationList";
+                            
+                            // Final fallback: If they don't leave the page, give them a manual close instruction
+                            setTimeout(() => {
+                                document.getElementById('desc').innerText = "You can now safely close this Safari tab.";
+                            }, 2000);
+                        }, 2000);
+                    }, 500);
+                })
+                .catch(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('title').innerText = "Safari Required";
+                    document.getElementById('desc').innerText = "Please open this link directly in the Safari app on your iPhone.";
+                });
+        };
     </script>
 </body>
 </html>
