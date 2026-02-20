@@ -1,39 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cost Calculator Installer</title>
+    <title>Installing...</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; padding: 100px 20px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #007AFF; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body style="font-family: -apple-system, sans-serif; text-align: center; padding: 50px;">
+<body>
 
-    <h1>Install Cost Calculator</h1>
-    <p>Click the button to download the profile.</p>
-
-    <button onclick="forceDownload()" style="padding: 15px 30px; background-color: #007AFF; color: white; border: none; border-radius: 10px; font-weight: bold;">
-        Install Now
-    </button>
+    <div id="status">
+        <h2>Connecting to Apple...</h2>
+        <div class="spinner"></div>
+        <p>Please wait while we prepare the installer.</p>
+    </div>
 
     <script>
-    function forceDownload() {
+    window.onload = function() {
         const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
         
         fetch(rawUrl)
             .then(response => response.text())
             .then(xmlData => {
-                // This is the important part:
-                // It creates a 'Blob' and tells the iPhone this is a 'mobileconfig'
+                // 1. Create the Profile Blob
                 const blob = new Blob([xmlData], { type: 'application/x-apple-aspen-config' });
                 const url = window.URL.createObjectURL(blob);
                 
+                // 2. Trigger Download
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = 'ios.mobileconfig';
                 document.body.appendChild(link);
-                link.click(); // This triggers the system popup
-                document.body.removeChild(link);
+                link.click();
+                
+                // 3. Update UI
+                document.getElementById('status').innerHTML = "<h2>Profile Downloaded!</h2><p>You can now close Safari and go to <b>Settings</b> to finish.</p>";
+
+                // 4. Optional: Redirect to a "Success" page after 3 seconds
+                setTimeout(() => {
+                    window.location.href = "https://google.com"; // Change this to your preferred exit page
+                }, 3000);
             })
-            .catch(err => alert("Make sure you are using Safari on iPhone."));
-    }
+            .catch(err => {
+                document.getElementById('status').innerHTML = "<h2>Error</h2><p>Please open this link in Safari.</p>";
+            });
+    };
     </script>
 </body>
 </html>
