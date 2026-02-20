@@ -3,29 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Installing Cost Calculator...</title>
-    <meta http-equiv="refresh" content="0; url=https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/main/Webapp/cost-calculator.mobileconfig">
+    <title>Install Cost Calculator</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; text-align: center; padding: 50px 20px; background: #f4f4f9; }
+        .install-btn { 
+            background: #007AFF; color: white; padding: 16px 32px; 
+            border-radius: 12px; text-decoration: none; font-weight: bold; 
+            display: inline-block; font-size: 18px; border: none; cursor: pointer;
+        }
+    </style>
 </head>
-<body style="font-family: -apple-system, sans-serif; text-align: center; padding-top: 50px;">
-    <h2>Installing Cost Calculator...</h2>
-    <p>A system prompt should appear shortly.</p>
-    <p>If nothing happens, <a href="https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/main/Webapp/cost-calculator.mobileconfig" style="color: #007AFF; text-decoration: none; font-weight: bold;">Click Here to Install</a>.</p>
+<body>
 
-    <div style="margin-top: 30px; text-align: left; display: inline-block; background: #f2f2f7; padding: 20px; border-radius: 12px;">
-        <strong>Next Steps:</strong>
-        <ol>
-            <li>Tap <b>Allow</b> on the popup.</li>
-            <li>Go to the <b>Settings</b> app.</li>
-            <li>Tap <b>Profile Downloaded</b> at the top.</li>
-            <li>Tap <b>Install</b> in the top right.</li>
-        </ol>
-    </div>
+    <h1>Cost Calculator</h1>
+    <p>Tap below to install the Web App to your home screen.</p>
+
+    <button onclick="downloadConfig()" class="install-btn">Install Now</button>
 
     <script>
-        // Backup JavaScript trigger
-        setTimeout(function() {
-            window.location.href = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/main/Webapp/cost-calculator.mobileconfig";
-        }, 500);
+    async function downloadConfig() {
+        const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/main/Webapp/ios.mobileconfig";
+        
+        try {
+            const response = await fetch(rawUrl);
+            const text = await response.text();
+            
+            // Create a Blob with the CORRECT "aspen-config" type that iOS needs
+            const blob = new Blob([text], { type: 'application/x-apple-aspen-config' });
+            const url = window.URL.createObjectURL(blob);
+            
+            // Create a hidden link and click it
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ios.mobileconfig';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert("Step 1: Profile Downloaded!\n\nStep 2: Go to your iPhone 'Settings' app and tap 'Profile Downloaded' at the top to finish.");
+        } catch (err) {
+            alert("Error: Could not fetch the config file. Make sure you are using Safari.");
+        }
+    }
     </script>
+
 </body>
 </html>
