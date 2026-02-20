@@ -6,7 +6,7 @@
     <title>Installing Cost Calculator...</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -14,12 +14,7 @@
             height: 100vh;
             margin: 0;
             background-color: #f2f2f7;
-            color: #000;
             text-align: center;
-        }
-        .container {
-            padding: 20px;
-            max-width: 300px;
         }
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
@@ -28,73 +23,46 @@
             border-radius: 50%;
             border-left-color: #007AFF;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin-bottom: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        h2 { font-size: 22px; margin-bottom: 10px; }
-        p { color: #8e8e93; font-size: 15px; line-height: 1.4; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { font-size: 20px; margin: 0; }
+        p { color: #8e8e93; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="container" id="main-content">
-        <div class="spinner" id="loader"></div>
-        <h2 id="title">Connecting...</h2>
-        <p id="desc">Preparing the secure installation profile for your iOS device.</p>
-    </div>
+    <div class="spinner"></div>
+    <h2>Starting Download...</h2>
+    <p>Returning to GitHub in a moment.</p>
 
     <script>
         window.onload = function() {
-            // Path to your raw GitHub file
             const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
-            
-            // 1. Fetch the raw XML from GitHub
+            const githubRepo = "https://github.com/jn5ncjzj7j-byte/Cost-Calculator";
+
+            // 1. Fetch and trigger the profile download
             fetch(rawUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error("Network error");
-                    return response.text();
-                })
+                .then(response => response.text())
                 .then(xmlData => {
-                    // 2. Create a Blob with the official Apple Configuration MIME type
-                    // This is the "magic" that makes it run as a script/profile instead of text
                     const blob = new Blob([xmlData], { type: 'application/x-apple-aspen-config' });
                     const url = window.URL.createObjectURL(blob);
                     
-                    // 3. Create a hidden link and click it to trigger the "Allow" popup
                     const link = document.createElement('a');
                     link.href = url;
                     link.download = 'cost_calculator.mobileconfig';
                     document.body.appendChild(link);
-                    
-                    // Small delay to ensure UI has loaded
-                    setTimeout(() => {
-                        link.click();
-                        document.body.removeChild(link);
-                        
-                        // 4. Update UI to tell the user we are leaving
-                        document.getElementById('loader').style.display = 'none';
-                        document.getElementById('title').innerText = "Profile Downloaded";
-                        document.getElementById('desc').innerHTML = "Redirecting to <b>Settings</b> to finish installation...";
+                    link.click();
+                    document.body.removeChild(link);
 
-                        // 5. Deep Link to Settings App
-                        // This "exits" the web view by jumping to the system settings
-                        setTimeout(() => {
-                            window.location.href = "App-prefs:root=General&path=ManagedConfigurationList";
-                            
-                            // Final fallback: If they don't leave the page, give them a manual close instruction
-                            setTimeout(() => {
-                                document.getElementById('desc').innerText = "You can now safely close this Safari tab.";
-                            }, 2000);
-                        }, 2000);
-                    }, 500);
+                    // 2. Wait 2 seconds for the "Allow" prompt to appear, then redirect
+                    setTimeout(() => {
+                        window.location.href = githubRepo;
+                    }, 2000);
                 })
                 .catch(err => {
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('title').innerText = "Safari Required";
-                    document.getElementById('desc').innerText = "Please open this link directly in the Safari app on your iPhone.";
+                    // If error (like not in Safari), go back to GitHub anyway
+                    window.location.href = githubRepo;
                 });
         };
     </script>
