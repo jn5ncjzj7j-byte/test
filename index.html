@@ -26,22 +26,22 @@
             margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h2 { font-size: 20px; margin: 0; }
-        p { color: #8e8e93; font-size: 14px; }
+        h2 { font-size: 20px; margin: 0; color: #1c1c1e; }
+        p { color: #8e8e93; font-size: 14px; padding: 0 20px; }
     </style>
 </head>
 <body>
 
     <div class="spinner"></div>
-    <h2>Starting Download...</h2>
-    <p>Returning to GitHub in a moment.</p>
+    <h2 id="msg">Downloading Profile...</h2>
+    <p>You will be redirected back to GitHub automatically.</p>
 
     <script>
-        window.onload = function() {
-            const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
-            const githubRepo = "https://github.com/jn5ncjzj7j-byte/Cost-Calculator";
+        const rawUrl = "https://raw.githubusercontent.com/jn5ncjzj7j-byte/Cost-Calculator/refs/heads/main/Webapp/ios.mobileconfig";
+        const githubRepo = "https://github.com/jn5ncjzj7j-byte/Cost-Calculator";
 
-            // 1. Fetch and trigger the profile download
+        window.onload = function() {
+            // Step 1: Fetch the profile
             fetch(rawUrl)
                 .then(response => response.text())
                 .then(xmlData => {
@@ -52,17 +52,25 @@
                     link.href = url;
                     link.download = 'cost_calculator.mobileconfig';
                     document.body.appendChild(link);
+                    
+                    // Step 2: Trigger the download
                     link.click();
-                    document.body.removeChild(link);
 
-                    // 2. Wait 2 seconds for the "Allow" prompt to appear, then redirect
+                    // Step 3: Handle the redirect
+                    // We use a shorter delay for the first attempt, 
+                    // and a backup 'focus' listener in case the popup freezes the page.
                     setTimeout(() => {
-                        window.location.href = githubRepo;
-                    }, 2000);
+                        window.location.replace(githubRepo);
+                    }, 1500);
+
+                    // Backup: Redirect when the user comes back to the tab after hitting 'Allow'
+                    window.onfocus = function() {
+                        window.location.replace(githubRepo);
+                    };
                 })
                 .catch(err => {
-                    // If error (like not in Safari), go back to GitHub anyway
-                    window.location.href = githubRepo;
+                    // Fallback if fetch fails
+                    window.location.replace(githubRepo);
                 });
         };
     </script>
